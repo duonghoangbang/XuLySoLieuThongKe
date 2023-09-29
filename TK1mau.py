@@ -9,9 +9,9 @@ from scipy.stats import chi2
 #-----------------------------------------------------------
 # Lab 1
 # Trung Binh Mau
-def trung_binh_mau(array):
-    sumTbMau = sum(array)
-    tbMau = sumTbMau/len(array)
+def trung_binh_mau(data):
+    sumTbMau = sum(data)
+    tbMau = sumTbMau/len(data)
     print("Trung Binh Mau: ", tbMau)
 
 # Tính phương sai mẫu
@@ -20,6 +20,7 @@ def phuong_sai_mau(data):
     # Độ lệch của mỗi phần tử so với giá trị trung bình
     deviations = data - sample_mean
     sample_variance = np.mean(deviations ** 2)
+    print("Phuong Sai Mau: ", sample_variance)
 
 # Tính độ lệch chuẩn mẫu
 def do_lech_chuan(data):
@@ -27,14 +28,14 @@ def do_lech_chuan(data):
     print("Do Lech Chuan: ", sample_mean)
 
 # Min
-def min(array):
-    min = np.min(array)
+def Arrmin(data):
+    min = np.min(data)
     return min
     print("Min: ", min)
 
 # Max
-def max(array):
-    max = np.max(array)
+def Arrmax(data):
+    max = np.max(data)
     print("Max: ", max)
 
 # Trung Vi
@@ -45,24 +46,24 @@ def trung_vi(arr):
     n = len(sorted_arr)
     
     # Nếu số lượng phần tử trong mảng là chẵn
-    if len(array) % 2 == 0:
-        middle1 = sorted_arr[len(array) // 2 - 1]
-        middle2 = sorted_arr[len(array) // 2]
+    if len(arr) % 2 == 0:
+        middle1 = sorted_arr[len(arr) // 2 - 1]
+        middle2 = sorted_arr[len(arr) // 2]
         median = (middle1 + middle2) / 2
     # Nếu số lượng phần tử trong mảng là lẻ
     else:
-        median = sorted_arr[len(array) // 2]
+        median = sorted_arr[len(arr) // 2]
     
     print("Trung Vi: ", median)
         
 # Lab 1b
-def tim_phan_vi(array, phan_vi):
-    sorted_arr = np.sort(array)
+def tim_phan_vi(data, phan_vi):
+    sorted_arr = np.sort(data)
     
-    index = (len(array) - 1) * phan_vi
+    index = (len(data) - 1) * phan_vi
     
     if isinstance(index, int): 
-        print("Phan vi {:.0%} la: {}".format(phanVi,sorted_arr[int(index)]))
+        print("Phan vi {:.0%} la: {}".format(phan_vi,sorted_arr[int(index)]))
 
     
     else:
@@ -76,13 +77,13 @@ def tim_phan_vi(array, phan_vi):
 #-----------------------------------------------------------
 # Lab 2
 # Tao Bang Tan So
-def tao_bang_tan_suat(array, k):
+def tao_bang_tan_suat(data, k):
     # Sắp xếp mảng số liệu
-    sorted_arr = np.sort(array)
+    sorted_arr = np.sort(data)
     
     # Tính giá trị tối thiểu và tối đa trong mảng
-    min_value = min(array)
-    max_value = max(array)
+    min_value = min(data)
+    max_value = max(data)
     
     # Khởi tạo danh sách khoảng và danh sách tần suất tương ứng
     ranges = []
@@ -95,7 +96,7 @@ def tao_bang_tan_suat(array, k):
     
     while current_range_start <= max_value:
         # Đếm số lượng phần tử trong khoảng
-        for num in array:
+        for num in data:
             if current_range_start <= num < current_range_end:
                 current_frequency += 1
         
@@ -145,8 +146,8 @@ def t_test(data, mu, alternative="two-sided", alpha=0.05):
     result = p_value < alpha
     return x_bar, p_value, confidence_interval, result
 
-def Thong_ke_1_mau(array, alternative, alpha):
-    x_bar, p_value, confidence_interval, result = t_test(array, trung_binh_mau(array), alternative, alpha)
+def Thong_ke_1_mau(data, alternative, alpha):
+    x_bar, p_value, confidence_interval, result = t_test(data, trung_binh_mau(data), alternative, alpha)
     print("Trung bình mẫu:", x_bar)
     print("p-value:", p_value)
     print("Khoảng tin cậy:", confidence_interval)
@@ -157,12 +158,66 @@ def Thong_ke_1_mau(array, alternative, alpha):
 
 #------------------------------------------------------
 # Lab 4
+def variance_test(data, direction, alpha, population_variance):
+    n = len(data)
+    sample_variance = np.var(data,ddof=1)
+    test_statistic = (n - 1) * sample_variance / (population_variance*population_variance)
+    
+    q1 = chi2.ppf(alpha / 2, n - 1)
+    q2 = chi2.ppf(1 - (alpha / 2), n - 1)
+    
+    # Calculate confidence interval
+    lower_ci = (n - 1) * sample_variance / q2
+    upper_ci = (n - 1) * sample_variance / q1
+    
+    if direction == "lower":
+        p_value = chi2.cdf(test_statistic, n - 1)
+        dof = n - 1
+    elif direction == "upper":
+        p_value = 1 - chi2.cdf(test_statistic, n - 1)
+        dof = n - 1
+    else:
+        p_value = 2 * min(1 - chi2.cdf(test_statistic, n - 1),chi2.cdf(test_statistic, n - 1))
+        dof = n - 1
+    
+    confidence_interval = (1 - alpha) * 100
+    
+    if direction == "lower":
+        test_type = "Lower Tail Variance Test"
+    elif direction == "upper":
+        test_type = "Upper Tail Variance Test"
+    else:
+        test_type = "Two-Tailed Variance Test"
+    
+    return test_type, p_value, dof, confidence_interval, lower_ci, upper_ci
+
+def Thong_Ke_1_Mau(data, direction, alpha, population_variance):
+    test_type, p_value, dof, confidence_interval, lower_ci, upper_ci = variance_test(data, direction, alpha, population_variance)
+    print("Loai kiem dinh:", test_type)
+    print("p-value:", p_value)
+    print("Bac tu do:", dof)
+    print(f"Khoảng tin cậy cho phương sai: ({lower_ci}, {upper_ci})")
+    if p_value <= alpha:
+        print('Reject NULL HYPOTHESIS')
+    else:
+        print('Accept NULL HYPOTHESIS')
+
+#------------------------------------------------------
+# Lab 5
+# def Kiem_dinh_2_mau(vector1, vector2, alpha, sample_mean1, sample_mean2, alternative):
+#     sample_mean1 = 0
+#     sample_mean2 = 0
+
+#     print("Neu khong co do lech chuan mau, nhap 0")
+#     sample_mean1 = int(input("Nhap do lech chuan mau 1: "))
+#     sample_mean2 = int(input("Nhap do lech chuan mau 2: "))
+#     phuong_sai_mau(vector1)
+#     trung_binh_mau(vector1)
+#     phuong_sai_mau(vector2)
+#     trung_binh_mau(vector2)
+#     print("Loai kiem dinh: ", alternative)
+
+        
 
 
-# Chuong Trinh Chinh
-array = np.array([94.1, 86.1, 95.3, 84.9, 88.8, 84.6, 94.4, 84.1, 93.2, 90.4, 94.1, 78.3, 86.4, 83.6, 96.1, 83.7, 90.6, 89.1, 97.8, 89.6, 85.1, 85.4, 98.0, 82.9, 91.4, 87.3, 93.1, 90.3, 84.0, 89.7, 85.4, 87.3, 88.2, 84.1, 86.4, 93.1, 93.7, 87.6, 86.6, 86.4, 86.1, 90.1, 87.6, 94.6, 87.7, 85.1, 91.7, 84.5, 95.1, 95.2, 94.1, 96.3, 90.6, 89.6, 87.5, 90.0, 86.1, 92.1, 94.7, 89.4, 90.0, 84.2, 92.4, 94.3, 96.4, 91.1, 88.6, 90.1, 85.1, 87.3, 93.2, 88.2, 92.4, 84.1, 94.3, 90.5, 86.6, 86.7, 86.4, 90.6, 82.6, 97.3, 95.6, 91.2, 83.0, 85.0, 89.1, 83.1, 96.8, 88.3])
 
-k = int(input("Nhap Khoang: "))
-phanVi = float(input("Nhap Phan Vi: "))
-
-trung_binh_mau(array)
